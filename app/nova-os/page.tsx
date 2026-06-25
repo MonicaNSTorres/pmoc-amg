@@ -34,27 +34,26 @@ export default function NovaOsPage() {
     const [planos, setPlanos] = useState<Plano[]>([]);
 
     const [equipamentoId, setEquipamentoId] = useState("");
-    const [planoId, setPlanoId] = useState("");
     const [dataExecucao, setDataExecucao] = useState("");
     const [observacao, setObservacao] = useState("");
     const [itensMarcados, setItensMarcados] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
     async function carregarDados() {
-        const res = await fetch("/app/api/nova-os/dados");
+        const res = await fetch("/api/nova-os/dados");
         const data = await res.json();
 
         setEquipamentos(data.equipamentos || []);
         setPlanos(data.planos || []);
     }
 
-    const planosDoEquipamento = useMemo(() => {
-        return planos.filter((plano) => plano.equipamentoId === equipamentoId);
-    }, [planos, equipamentoId]);
+    const equipamentoSelecionado = useMemo(() => {
+        return equipamentos.find((equipamento) => equipamento.id === equipamentoId);
+    }, [equipamentos, equipamentoId]);
 
     const planoSelecionado = useMemo(() => {
-        return planos.find((plano) => plano.id === planoId);
-    }, [planos, planoId]);
+        return planos.find((plano) => plano.equipamentoId === equipamentoId);
+    }, [planos, equipamentoId]);
 
     function marcarItem(itemId: string) {
         setItensMarcados((atual) =>
@@ -66,17 +65,17 @@ export default function NovaOsPage() {
 
     async function gerarPmoc() {
         if (!equipamentoId) return alert("Selecione a TAG/equipamento.");
-        if (!planoId) return alert("Selecione o plano PMOC.");
+        if (!planoSelecionado) return alert("Nenhum plano PMOC encontrado para esta TAG.");
         if (!dataExecucao) return alert("Informe a data de execução.");
         if (!itensMarcados.length) return alert("Marque pelo menos um serviço executado.");
 
         setLoading(true);
 
-        const res = await fetch("/app/api/pmoc", {
+        const res = await fetch("/api/pmoc", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                planoId,
+                planoId: planoSelecionado.id,
                 dataExecucao,
                 observacao,
                 itensMarcados,
@@ -93,7 +92,7 @@ export default function NovaOsPage() {
 
         const link = document.createElement("a");
         link.href = `data:application/pdf;base64,${data.pdfBase64}`;
-        link.download = "pmoc-amg.pdf";
+        link.download = `pmoc-${equipamentoSelecionado?.tag || "amg"}.pdf`;
         link.click();
 
         setLoading(false);
@@ -102,11 +101,6 @@ export default function NovaOsPage() {
     useEffect(() => {
         carregarDados();
     }, []);
-
-    useEffect(() => {
-        setPlanoId("");
-        setItensMarcados([]);
-    }, [equipamentoId]);
 
     useEffect(() => {
         setItensMarcados(planoSelecionado?.itens.map((item) => item.id) || []);
@@ -124,7 +118,7 @@ export default function NovaOsPage() {
             </div>
 
             <div className="rounded-3xl bg-white p-6 shadow-sm">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <select
                         value={equipamentoId}
                         onChange={(e) => setEquipamentoId(e.target.value)}
@@ -138,19 +132,6 @@ export default function NovaOsPage() {
                         ))}
                     </select>
 
-                    <select
-                        value={planoId}
-                        onChange={(e) => setPlanoId(e.target.value)}
-                        className="rounded-xl border px-4 py-3 text-sm"
-                    >
-                        <option value="">Selecione o plano</option>
-                        {planosDoEquipamento.map((plano) => (
-                            <option key={plano.id} value={plano.id}>
-                                {plano.nome} - {plano.periodicidade}
-                            </option>
-                        ))}
-                    </select>
-
                     <input
                         type="date"
                         value={dataExecucao}
@@ -159,11 +140,44 @@ export default function NovaOsPage() {
                     />
                 </div>
 
+                {equipamentoSelecionado && (
+                    <div className="mt-5 rounded-2xl border bg-slate-50 p-4 text-sm text-slate-700">
+                        <p>
+                            <strong>Cliente:</strong>{" "}
+                            {equipamentoSelecionado.ambiente.cliente.nome}
+                        </p>
+                        <p className="mt-1">
+                            <strong>Ambiente:</strong>{" "}
+                            {equipamentoSelecionado.ambiente.nome}
+                        </p>
+                        <p className="mt-1">
+                            <strong>TAG:</strong> {equipamentoSelecionado.tag}
+                        </p>
+                    </div>
+                )}
+
+                {equipamentoId && !planoSelecionado && (
+                    <div className="mt-6 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600">
+                        Nenhum plano PMOC encontrado para esta TAG. Cadastre um plano na tela PMOC.
+                    </div>
+                )}
+
                 {planoSelecionado && (
                     <div className="mt-8">
-                        <h2 className="mb-4 text-lg font-black text-slate-900">
-                            Serviços executados
-                        </h2>
+                        <div className="mb-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-lg font-black text-slate-900">
+                                    Serviços executados
+                                </h2>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Checklist carregado automaticamente do plano {planoSelecionado.periodicidade}.
+                                </p>
+                            </div>
+
+                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-900">
+                                {planoSelecionado.periodicidade}
+                            </span>
+                        </div>
 
                         <div className="space-y-3">
                             {planoSelecionado.itens.map((item) => (
