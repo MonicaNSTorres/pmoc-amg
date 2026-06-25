@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PerfilUsuario {
+  ADMIN
+  TECNICO
+}
+
+enum Periodicidade {
+  MENSAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+}
+
+enum TipoFotoPmoc {
+  ANTES
+  DEPOIS
+}
+
+model User {
+  id            String        @id @default(cuid())
+  nome          String
+  email         String        @unique
+  senha         String
+  perfil        PerfilUsuario @default(TECNICO)
+  ativo         Boolean       @default(true)
+  criadoEm      DateTime      @default(now())
+  atualizadoEm  DateTime      @updatedAt
+
+  pmocsGerados  PmocGerado[]
+}
+
+model Cliente {
+  id            String   @id @default(cuid())
+  nome          String
+  cnpj          String?
+  contrato      String?
+  endereco      String?
+  cidade        String?
+  estado        String?
+  cep           String?
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  ambientes     Ambiente[]
+}
+
+model Ambiente {
+  id            String   @id @default(cuid())
+  nome          String
+  descricao     String?
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  clienteId     String
+  cliente       Cliente @relation(fields: [clienteId], references: [id])
+
+  equipamentos  Equipamento[]
+}
+
+model Equipamento {
+  id             String   @id @default(cuid())
+  tag            String
+  nome           String
+  marca          String?
+  modelo         String?
+  capacidade     String?
+  localizacao    String?
+  ativo          Boolean  @default(true)
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  ambienteId     String
+  ambiente       Ambiente @relation(fields: [ambienteId], references: [id])
+
+  planos         PlanoManutencao[]
+  pmocsGerados   PmocGerado[]
+}
+
+model ResponsavelTecnico {
+  id                 String   @id @default(cuid())
+  nome               String
+  crea               String
+  registroConselho   String
+  art                String
+  assinaturaBase64   String?
+  ativo              Boolean  @default(true)
+  criadoEm           DateTime @default(now())
+  atualizadoEm       DateTime @updatedAt
+
+  pmocsGerados       PmocGerado[]
+}
+
+model PlanoManutencao {
+  id             String        @id @default(cuid())
+  nome           String
+  periodicidade  Periodicidade
+  ativo          Boolean       @default(true)
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+
+  equipamentoId  String
+  equipamento    Equipamento @relation(fields: [equipamentoId], references: [id])
+
+  itens          ItemManutencao[]
+}
+
+model ItemManutencao {
+  id             String        @id @default(cuid())
+  descricao      String
+  periodicidade  Periodicidade
+  ordem          Int           @default(1)
+  ativo          Boolean       @default(true)
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+
+  planoId        String
+  plano          PlanoManutencao @relation(fields: [planoId], references: [id])
+
+  execucoes      ItemPmocExecutado[]
+}
+
+model PmocGerado {
+  id               String   @id @default(cuid())
+  dataExecucao     DateTime
+  dataGeracao      DateTime @default(now())
+  observacao       String?
+  pdfBase64        String?
+
+  usuarioId        String
+  usuario          User @relation(fields: [usuarioId], references: [id])
+
+  equipamentoId    String
+  equipamento      Equipamento @relation(fields: [equipamentoId], references: [id])
+
+  responsavelId    String
+  responsavel      ResponsavelTecnico @relation(fields: [responsavelId], references: [id])
+
+  itensExecutados  ItemPmocExecutado[]
+  fotos            FotoPmoc[]
+}
+
+model ItemPmocExecutado {
+  id                String   @id @default(cuid())
+  descricao         String
+  periodicidade     Periodicidade
+  dataExecucao      DateTime
+  concluido         Boolean  @default(true)
+
+  pmocGeradoId      String
+  pmocGerado        PmocGerado @relation(fields: [pmocGeradoId], references: [id])
+
+  itemManutencaoId  String?
+  itemManutencao    ItemManutencao? @relation(fields: [itemManutencaoId], references: [id])
+}
+
+model FotoPmoc {
+  id            String       @id @default(cuid())
+  imagemBase64  String
+  tipo          TipoFotoPmoc
+  descricao     String?
+  criadoEm      DateTime     @default(now())
+
+  pmocGeradoId  String
+  pmocGerado    PmocGerado   @relation(fields: [pmocGeradoId], references: [id])
+}
