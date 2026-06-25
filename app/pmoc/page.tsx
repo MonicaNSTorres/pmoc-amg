@@ -98,7 +98,7 @@ export default function PmocPage() {
 
             const dataExecucao = new Date().toISOString();
 
-            const res = await fetch("/api/pmoc/gerar", {
+            const res = await fetch("/api/pmoc", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
