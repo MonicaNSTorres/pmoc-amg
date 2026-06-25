@@ -2,6 +2,23 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/layout/AppShell";
 
+type UltimoPmoc = {
+    id: string;
+    dataGeracao: Date;
+    equipamento: {
+        tag: string;
+        nome: string;
+        ambiente: {
+            cliente: {
+                nome: string;
+            };
+        };
+    };
+    responsavel: {
+        nome: string;
+    };
+};
+
 export default async function DashboardPage() {
     const inicioMes = new Date();
     inicioMes.setDate(1);
@@ -91,7 +108,7 @@ export default async function DashboardPage() {
                             </thead>
 
                             <tbody>
-                                {ultimosPmocs.map((pmoc) => (
+                                {ultimosPmocs.map((pmoc: UltimoPmoc) => (
                                     <tr key={pmoc.id} className="border-b">
                                         <td className="py-4 font-bold">
                                             {pmoc.dataGeracao.toLocaleDateString("pt-BR")}
