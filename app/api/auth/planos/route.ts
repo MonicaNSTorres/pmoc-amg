@@ -1,40 +1,73 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 0;
+
+async function getPrisma() {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+}
 
 export async function GET() {
-    const planos = await prisma.planoManutencao.findMany({
-        include: {
-            equipamento: true,
-            itens: {
-                orderBy: { ordem: "asc" },
-            },
-        },
-        orderBy: { criadoEm: "desc" },
-    });
+    try {
+        const prisma = await getPrisma();
 
-    return NextResponse.json(planos);
+        const planos = await prisma.planoManutencao.findMany({
+            include: {
+                equipamento: true,
+                itens: {
+                    orderBy: {
+                        ordem: "asc",
+                    },
+                },
+            },
+            orderBy: {
+                criadoEm: "desc",
+            },
+        });
+
+        return NextResponse.json(planos);
+    } catch (error) {
+        console.error(error);
+
+        return NextResponse.json(
+            { error: "Erro ao buscar planos." },
+            { status: 500 }
+        );
+    }
 }
 
 export async function POST(req: Request) {
-    const body = await req.json();
+    try {
+        const prisma = await getPrisma();
 
-    const plano = await prisma.planoManutencao.create({
-        data: {
-            nome: body.nome,
-            periodicidade: body.periodicidade,
-            equipamentoId: body.equipamentoId,
-            itens: {
-                create: body.itens.map((item: string, index: number) => ({
-                    descricao: item,
-                    periodicidade: body.periodicidade,
-                    ordem: index + 1,
-                })),
+        const body = await req.json();
+
+        const plano = await prisma.planoManutencao.create({
+            data: {
+                nome: body.nome,
+                periodicidade: body.periodicidade,
+                equipamentoId: body.equipamentoId,
+                itens: {
+                    create: body.itens.map(
+                        (item: string, index: number) => ({
+                            descricao: item,
+                            periodicidade: body.periodicidade,
+                            ordem: index + 1,
+                        })
+                    ),
+                },
             },
-        },
-    });
+        });
 
-    return NextResponse.json(plano);
+        return NextResponse.json(plano);
+    } catch (error) {
+        console.error(error);
+
+        return NextResponse.json(
+            { error: "Erro ao salvar plano." },
+            { status: 500 }
+        );
+    }
 }

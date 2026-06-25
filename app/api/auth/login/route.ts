@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 0;
+
+async function getPrisma() {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+}
 
 export async function POST(req: Request) {
     try {
+        const prisma = await getPrisma();
         const { email, senha } = await req.json();
 
         if (!email || !senha) {

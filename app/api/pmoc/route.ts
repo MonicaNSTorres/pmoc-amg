@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 0;
+
+async function getPrisma() {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+}
 
 type ItemPmoc = {
     id: string;
@@ -16,6 +21,8 @@ const ASSINATURA_PELLEGRINI = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
 
 export async function POST(req: Request) {
     try {
+        const prisma = await getPrisma();
+
         const { planoId, dataExecucao, observacao, itensMarcados } = await req.json();
 
         const plano = await prisma.planoManutencao.findUnique({
@@ -41,11 +48,13 @@ export async function POST(req: Request) {
             );
         }
 
-        const itensSelecionados = Array.isArray(itensMarcados) && itensMarcados.length
-            ? plano.itens.filter((item: { id: string }) =>
-                itensMarcados.includes(item.id)
-            )
-            : plano.itens;
+        const itensSelecionados =
+            Array.isArray(itensMarcados) && itensMarcados.length
+                ? plano.itens.filter((item: { id: string }) =>
+                      itensMarcados.includes(item.id)
+                  )
+                : plano.itens;
+
         if (!itensSelecionados.length) {
             return NextResponse.json(
                 { error: "Nenhum serviço selecionado." },
@@ -65,8 +74,7 @@ export async function POST(req: Request) {
         }
 
         const equipamento = plano.equipamento;
-        const ambiente = equipamento.ambiente;
-        const cliente = ambiente.cliente;
+        const cliente = equipamento.ambiente.cliente;
 
         const doc = new jsPDF("p", "mm", "a4");
 
@@ -133,54 +141,39 @@ export async function POST(req: Request) {
             finalY += 18 + linhasObs.length * 4;
         }
 
-        const assinatura =
-            responsavel.assinaturaBase64 || ASSINATURA_PELLEGRINI;
+        const assinatura = responsavel.assinaturaBase64 || ASSINATURA_PELLEGRINI;
 
-        // largura da linha
         const larguraLinha = 90;
         const inicioLinha = (210 - larguraLinha) / 2;
         const fimLinha = inicioLinha + larguraLinha;
 
-        // linha da assinatura
         doc.setDrawColor(80);
         doc.setLineWidth(0.4);
         doc.line(inicioLinha, finalY + 18, fimLinha, finalY + 18);
 
-        // assinatura
-        doc.addImage(
-            assinatura,
-            "JPEG",
-            78,
-            finalY - 6,
-            54,
-            22
-        );
+        doc.addImage(assinatura, "JPEG", 78, finalY - 6, 54, 22);
 
-        //texto
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.text("ENGENHEIRO RESPONSÁVEL", 105, finalY + 25, {
             align: "center",
         });
 
-        //nome
-        doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.text(responsavel.nome.toUpperCase(), 105, finalY + 31, {
             align: "center",
         });
 
-        //CREA
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.text(`CREA: ${responsavel.crea}`, 105, finalY + 36, {
             align: "center",
         });
 
-        //ART
         doc.text(`ART: ${responsavel.art}`, 105, finalY + 41, {
             align: "center",
         });
+
         doc.setFontSize(9);
         doc.text(`DATA DE GERAÇÃO: ${formatDateBR(new Date())}`, 14, 285);
 
@@ -212,6 +205,7 @@ export async function POST(req: Request) {
         });
     } catch (error) {
         console.error(error);
+
         return NextResponse.json(
             { error: "Erro ao gerar PMOC." },
             { status: 500 }
