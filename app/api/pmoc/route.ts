@@ -33,9 +33,10 @@ export async function POST(req: Request) {
         }
 
         const itensSelecionados = Array.isArray(itensMarcados) && itensMarcados.length
-            ? plano.itens.filter((item) => itensMarcados.includes(item.id))
+            ? plano.itens.filter((item: { id: string }) =>
+                itensMarcados.includes(item.id)
+            )
             : plano.itens;
-
         if (!itensSelecionados.length) {
             return NextResponse.json(
                 { error: "Nenhum serviço selecionado." },
