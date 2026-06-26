@@ -136,8 +136,8 @@ export default function UsuariosPage() {
 
     return (
         <AppShell>
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
                     Usuários
                 </h1>
                 <p className="mt-2 text-sm text-slate-500">
@@ -145,15 +145,33 @@ export default function UsuariosPage() {
                 </p>
             </div>
 
-            <div className="mb-8 rounded-3xl bg-white p-6 shadow-sm">
+            <div className="mb-6 rounded-3xl bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
                 <h2 className="mb-5 text-lg font-black text-slate-900">
                     Novo usuário
                 </h2>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-                    <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                    <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <input
+                        className="rounded-xl border px-4 py-3 text-sm"
+                        placeholder="Nome"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                    />
+
+                    <input
+                        className="rounded-xl border px-4 py-3 text-sm"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <input
+                        className="rounded-xl border px-4 py-3 text-sm"
+                        placeholder="Senha"
+                        type="password"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                    />
 
                     <select
                         value={perfil}
@@ -168,18 +186,18 @@ export default function UsuariosPage() {
                 <button
                     onClick={salvarUsuario}
                     disabled={loading}
-                    className="mt-5 rounded-xl bg-blue-900 px-6 py-3 text-sm font-black text-white"
+                    className="mt-5 w-full rounded-xl bg-blue-900 px-6 py-3 text-sm font-black text-white disabled:opacity-60 sm:w-auto"
                 >
                     {loading ? "Salvando..." : "Salvar usuário"}
                 </button>
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-5 text-lg font-black text-slate-900">
                     Usuários cadastrados
                 </h2>
 
-                <div className="overflow-x-auto">
+                <div className="hidden overflow-x-auto md:block">
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b text-slate-500">
@@ -200,44 +218,78 @@ export default function UsuariosPage() {
                                     <td>{usuario.email}</td>
                                     <td>{usuario.perfil}</td>
                                     <td>
-                                        <span className={usuario.ativo ? "font-bold text-green-700" : "font-bold text-red-600"}>
+                                        <span
+                                            className={
+                                                usuario.ativo
+                                                    ? "font-bold text-green-700"
+                                                    : "font-bold text-red-600"
+                                            }
+                                        >
                                             {usuario.ativo ? "Ativo" : "Inativo"}
                                         </span>
                                     </td>
                                     <td>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => abrirModalEdicao(usuario)}
-                                                className="rounded-lg bg-blue-900 px-3 py-2 text-xs font-black text-white"
-                                            >
-                                                Editar
-                                            </button>
-
-                                            <button
-                                                onClick={() => excluirUsuario(usuario.id)}
-                                                className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white hover:bg-red-700"
-                                            >
-                                                Excluir
-                                            </button>
-                                        </div>
+                                        <Acoes
+                                            onEditar={() => abrirModalEdicao(usuario)}
+                                            onExcluir={() => excluirUsuario(usuario.id)}
+                                        />
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-
-                    {!usuarios.length && (
-                        <p className="py-8 text-center text-sm text-slate-500">
-                            Nenhum usuário cadastrado.
-                        </p>
-                    )}
                 </div>
+
+                <div className="space-y-3 md:hidden">
+                    {usuarios.map((usuario) => (
+                        <div key={usuario.id} className="rounded-2xl border p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <h3 className="font-black text-slate-900">
+                                        {usuario.nome}
+                                    </h3>
+                                    <p className="mt-1 break-all text-sm text-slate-500">
+                                        {usuario.email}
+                                    </p>
+                                </div>
+
+                                <span
+                                    className={
+                                        usuario.ativo
+                                            ? "rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700"
+                                            : "rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600"
+                                    }
+                                >
+                                    {usuario.ativo ? "Ativo" : "Inativo"}
+                                </span>
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-600">
+                                <Info label="Perfil" value={usuario.perfil} />
+                            </div>
+
+                            <div className="mt-4">
+                                <Acoes
+                                    onEditar={() => abrirModalEdicao(usuario)}
+                                    onExcluir={() => excluirUsuario(usuario.id)}
+                                    mobile
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {!usuarios.length && (
+                    <p className="py-8 text-center text-sm text-slate-500">
+                        Nenhum usuário cadastrado.
+                    </p>
+                )}
             </div>
 
             {modalAberta && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-                    <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl">
-                        <div className="mb-6 flex items-center justify-between">
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 py-3 sm:items-center sm:px-4">
+                    <div className="max-h-[92vh] w-full overflow-y-auto rounded-3xl bg-white p-4 shadow-xl sm:max-w-2xl sm:p-6">
+                        <div className="mb-6 flex items-start justify-between gap-4">
                             <div>
                                 <h2 className="text-xl font-black text-slate-900">
                                     Editar usuário
@@ -255,14 +307,34 @@ export default function UsuariosPage() {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Nome" value={editNome} onChange={(e) => setEditNome(e.target.value)} />
-                            <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
-                            <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Nova senha" type="password" value={editSenha} onChange={(e) => setEditSenha(e.target.value)} />
+                        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
+                            <input
+                                className="rounded-xl border px-4 py-3 text-sm"
+                                placeholder="Nome"
+                                value={editNome}
+                                onChange={(e) => setEditNome(e.target.value)}
+                            />
+
+                            <input
+                                className="rounded-xl border px-4 py-3 text-sm"
+                                placeholder="Email"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                            />
+
+                            <input
+                                className="rounded-xl border px-4 py-3 text-sm"
+                                placeholder="Nova senha"
+                                type="password"
+                                value={editSenha}
+                                onChange={(e) => setEditSenha(e.target.value)}
+                            />
 
                             <select
                                 value={editPerfil}
-                                onChange={(e) => setEditPerfil(e.target.value as "ADMIN" | "TECNICO")}
+                                onChange={(e) =>
+                                    setEditPerfil(e.target.value as "ADMIN" | "TECNICO")
+                                }
                                 className="rounded-xl border px-4 py-3 text-sm"
                             >
                                 <option value="TECNICO">Técnico</option>
@@ -279,7 +351,7 @@ export default function UsuariosPage() {
                             </select>
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-3">
+                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button
                                 onClick={fecharModal}
                                 className="rounded-xl border px-6 py-3 text-sm font-black text-slate-700"
@@ -299,5 +371,42 @@ export default function UsuariosPage() {
                 </div>
             )}
         </AppShell>
+    );
+}
+
+function Info({ label, value }: { label: string; value?: string | null }) {
+    return (
+        <div>
+            <p className="text-xs font-bold uppercase text-slate-400">{label}</p>
+            <p className="font-semibold text-slate-700">{value || "-"}</p>
+        </div>
+    );
+}
+
+function Acoes({
+    onEditar,
+    onExcluir,
+    mobile = false,
+}: {
+    onEditar: () => void;
+    onExcluir: () => void;
+    mobile?: boolean;
+}) {
+    return (
+        <div className={mobile ? "grid grid-cols-2 gap-2" : "flex gap-2"}>
+            <button
+                onClick={onEditar}
+                className="rounded-lg bg-blue-900 px-3 py-2 text-xs font-black text-white"
+            >
+                Editar
+            </button>
+
+            <button
+                onClick={onExcluir}
+                className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white hover:bg-red-700"
+            >
+                Excluir
+            </button>
+        </div>
     );
 }

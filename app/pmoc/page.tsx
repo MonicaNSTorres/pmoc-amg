@@ -134,8 +134,8 @@ export default function PmocPage() {
 
     return (
         <AppShell>
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
                     PMOC
                 </h1>
                 <p className="mt-2 text-sm text-slate-500">
@@ -143,16 +143,16 @@ export default function PmocPage() {
                 </p>
             </div>
 
-            <div className="mb-8 rounded-3xl bg-white p-6 shadow-sm">
+            <div className="mb-6 rounded-3xl bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
                 <h2 className="mb-5 text-lg font-black text-slate-900">
                     Novo plano PMOC
                 </h2>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
                     <select
                         value={equipamentoId}
                         onChange={(e) => setEquipamentoId(e.target.value)}
-                        className="rounded-xl border px-4 py-3 text-sm"
+                        className="w-full rounded-xl border px-4 py-3 text-sm"
                     >
                         <option value="">Selecione o equipamento</option>
                         {equipamentos.map((equipamento) => (
@@ -163,7 +163,7 @@ export default function PmocPage() {
                     </select>
 
                     <input
-                        className="rounded-xl border px-4 py-3 text-sm"
+                        className="w-full rounded-xl border px-4 py-3 text-sm"
                         value={nome}
                         onChange={(e) => setNome(e.target.value)}
                         placeholder="Nome do plano"
@@ -172,7 +172,7 @@ export default function PmocPage() {
                     <select
                         value={periodicidade}
                         onChange={(e) => setPeriodicidade(e.target.value)}
-                        className="rounded-xl border px-4 py-3 text-sm"
+                        className="w-full rounded-xl border px-4 py-3 text-sm"
                     >
                         <option value="MENSAL">Mensal</option>
                         <option value="TRIMESTRAL">Trimestral</option>
@@ -193,11 +193,11 @@ export default function PmocPage() {
                     ))}
                 </div>
 
-                <div className="mt-5 flex gap-3">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                     <button
                         type="button"
                         onClick={adicionarItem}
-                        className="rounded-xl border px-6 py-3 text-sm font-black text-slate-700"
+                        className="w-full rounded-xl border px-6 py-3 text-sm font-black text-slate-700 sm:w-auto"
                     >
                         + Adicionar item
                     </button>
@@ -205,22 +205,22 @@ export default function PmocPage() {
                     <button
                         onClick={salvarPlano}
                         disabled={loading}
-                        className="rounded-xl bg-blue-900 px-6 py-3 text-sm font-black text-white"
+                        className="w-full rounded-xl bg-blue-900 px-6 py-3 text-sm font-black text-white disabled:opacity-60 sm:w-auto"
                     >
                         {loading ? "Salvando..." : "Salvar plano"}
                     </button>
                 </div>
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-5 text-lg font-black text-slate-900">
                     Planos cadastrados
                 </h2>
 
                 <div className="space-y-4">
                     {planos.map((plano) => (
-                        <div key={plano.id} className="rounded-2xl border p-5">
-                            <div className="flex items-start justify-between gap-4">
+                        <div key={plano.id} className="rounded-2xl border p-4 sm:p-5">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                     <h3 className="font-black text-slate-900">
                                         {plano.nome}
@@ -230,29 +230,37 @@ export default function PmocPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-3">
-                                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-900">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-900">
                                         {plano.periodicidade}
                                     </span>
 
                                     <button
                                         onClick={() => gerarPdf(plano.id)}
                                         disabled={gerandoPdfId === plano.id}
-                                        className="rounded-xl bg-blue-900 px-4 py-2 text-xs font-black text-white disabled:opacity-60"
+                                        className="w-full rounded-xl bg-blue-900 px-4 py-3 text-xs font-black text-white disabled:opacity-60 sm:w-auto sm:py-2"
                                     >
                                         {gerandoPdfId === plano.id ? "Gerando..." : "Gerar PDF"}
                                     </button>
                                 </div>
                             </div>
 
-                            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                            <ul className="mt-4 space-y-2 text-sm text-slate-600">
                                 {plano.itens.map((item) => (
-                                    <li key={item.id}>{item.descricao}</li>
+                                    <li key={item.id} className="rounded-xl bg-slate-50 px-4 py-3">
+                                        {item.descricao}
+                                    </li>
                                 ))}
                             </ul>
                         </div>
                     ))}
                 </div>
+
+                {!planos.length && (
+                    <p className="py-8 text-center text-sm text-slate-500">
+                        Nenhum plano cadastrado.
+                    </p>
+                )}
             </div>
         </AppShell>
     );
