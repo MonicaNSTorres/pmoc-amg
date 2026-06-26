@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type AppSidebarProps = {
     aberto?: boolean;
@@ -18,6 +19,18 @@ const links = [
 ];
 
 export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
+    const router = useRouter();
+
+    async function sair() {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+        });
+
+        aoFechar?.();
+        router.push("/login");
+        router.refresh();
+    }
+
     return (
         <>
             {aberto && (
@@ -31,7 +44,7 @@ export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
 
             <aside
                 className={[
-                    "fixed left-0 top-0 z-50 h-screen w-72 bg-slate-950 p-5 text-white transition-transform duration-300 lg:w-64 lg:translate-x-0",
+                    "fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-slate-950 p-5 text-white transition-transform duration-300 lg:w-64 lg:translate-x-0",
                     aberto ? "translate-x-0" : "-translate-x-full",
                 ].join(" ")}
             >
@@ -44,7 +57,7 @@ export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
                     <button
                         type="button"
                         onClick={aoFechar}
-                        className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black lg:hidden cursor-pointer"
+                        className="cursor-pointer rounded-xl border border-white/10 px-3 py-2 text-sm font-black lg:hidden"
                     >
                         ✕
                     </button>
@@ -62,6 +75,16 @@ export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
                         </Link>
                     ))}
                 </nav>
+
+                <div className="mt-auto border-t border-white/10 pt-5">
+                    <button
+                        type="button"
+                        onClick={sair}
+                        className="w-full cursor-pointer rounded-xl bg-red-600 px-4 py-3 text-sm font-black text-white transition hover:bg-red-700"
+                    >
+                        Sair
+                    </button>
+                </div>
             </aside>
         </>
     );
