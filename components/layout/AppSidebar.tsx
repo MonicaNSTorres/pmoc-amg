@@ -44,7 +44,7 @@ export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
                     <button
                         type="button"
                         onClick={aoFechar}
-                        className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black lg:hidden"
+                        className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black lg:hidden cursor-pointer"
                     >
                         ✕
                     </button>

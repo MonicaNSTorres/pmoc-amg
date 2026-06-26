@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button
                     type="button"
                     onClick={() => setMenuAberto(true)}
-                    className="rounded-xl border px-3 py-2 text-xl font-black text-slate-900"
+                    className="rounded-xl border px-3 py-2 text-xl font-black text-slate-900 hover:bg-blue-900 hover:text-white hover:border-blue-900 cursor-pointer"
                 >
                     ☰
                 </button>

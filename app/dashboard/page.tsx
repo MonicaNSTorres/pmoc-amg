@@ -157,19 +157,19 @@ export default async function DashboardPage() {
                     </h2>
 
                     <div className="space-y-3">
-                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-slate-50" href="/nova-os">
+                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-blue-900 hover:text-white" href="/nova-os">
                             Gerar nova OS PMOC
                         </Link>
 
-                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-slate-50" href="/historico">
+                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-blue-900 hover:text-white" href="/historico">
                             Ver histórico de PMOCs
                         </Link>
 
-                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-slate-50" href="/equipamentos">
+                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-blue-900 hover:text-white" href="/equipamentos">
                             Cadastrar equipamento/TAG
                         </Link>
 
-                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-slate-50" href="/pmoc">
+                        <Link className="block rounded-2xl border p-4 text-sm font-black text-slate-800 hover:bg-blue-900 hover:text-white" href="/pmoc">
                             Gerenciar planos PMOC
                         </Link>
                     </div>
