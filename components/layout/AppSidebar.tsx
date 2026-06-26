@@ -1,36 +1,68 @@
+"use client";
+
 import Link from "next/link";
 
-export function AppSidebar() {
-    return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-950 p-5 text-white">
-            <div className="mb-10">
-                <div className="text-2xl font-black">AMG</div>
-                <div className="text-sm text-slate-400">Sistema PMOC</div>
-            </div>
+type AppSidebarProps = {
+    aberto?: boolean;
+    aoFechar?: () => void;
+};
 
-            <nav className="space-y-2 text-sm font-semibold">
-                <Link href="/dashboard" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Dashboard
-                </Link>
-                <Link href="/clientes" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Clientes
-                </Link>
-                <Link href="/ambientes" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Ambientes
-                </Link>
-                <Link href="/equipamentos" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Equipamentos
-                </Link>
-                <Link href="/pmoc" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    PMOC
-                </Link>
-                <Link href="/historico" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Histórico
-                </Link>
-                <Link href="/usuarios" className="block rounded-xl px-4 py-3 hover:bg-white/10">
-                    Usuários
-                </Link>
-            </nav>
-        </aside>
+const links = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/clientes", label: "Clientes" },
+    { href: "/ambientes", label: "Ambientes" },
+    { href: "/equipamentos", label: "Equipamentos" },
+    { href: "/pmoc", label: "PMOC" },
+    { href: "/historico", label: "Histórico" },
+    { href: "/usuarios", label: "Usuários" },
+];
+
+export function AppSidebar({ aberto = false, aoFechar }: AppSidebarProps) {
+    return (
+        <>
+            {aberto && (
+                <button
+                    type="button"
+                    aria-label="Fechar menu"
+                    onClick={aoFechar}
+                    className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+                />
+            )}
+
+            <aside
+                className={[
+                    "fixed left-0 top-0 z-50 h-screen w-72 bg-slate-950 p-5 text-white transition-transform duration-300 lg:w-64 lg:translate-x-0",
+                    aberto ? "translate-x-0" : "-translate-x-full",
+                ].join(" ")}
+            >
+                <div className="mb-10 flex items-start justify-between">
+                    <div>
+                        <div className="text-2xl font-black">AMG</div>
+                        <div className="text-sm text-slate-400">Sistema PMOC</div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={aoFechar}
+                        className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black lg:hidden"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <nav className="space-y-2 text-sm font-semibold">
+                    {links.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={aoFechar}
+                            className="block rounded-xl px-4 py-3 hover:bg-white/10"
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
+            </aside>
+        </>
     );
 }

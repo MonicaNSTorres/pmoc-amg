@@ -24,48 +24,42 @@ export default async function DashboardPage() {
     inicioMes.setDate(1);
     inicioMes.setHours(0, 0, 0, 0);
 
-    const [
-        clientes,
-        ambientes,
-        equipamentos,
-        pmocs,
-        pmocsMes,
-        ultimosPmocs,
-    ] = await Promise.all([
-        prisma.cliente.count(),
-        prisma.ambiente.count(),
-        prisma.equipamento.count(),
-        prisma.pmocGerado.count(),
-        prisma.pmocGerado.count({
-            where: {
-                dataGeracao: {
-                    gte: inicioMes,
+    const [clientes, ambientes, equipamentos, pmocs, pmocsMes, ultimosPmocs] =
+        await Promise.all([
+            prisma.cliente.count(),
+            prisma.ambiente.count(),
+            prisma.equipamento.count(),
+            prisma.pmocGerado.count(),
+            prisma.pmocGerado.count({
+                where: {
+                    dataGeracao: {
+                        gte: inicioMes,
+                    },
                 },
-            },
-        }),
-        prisma.pmocGerado.findMany({
-            take: 5,
-            orderBy: { dataGeracao: "desc" },
-            include: {
-                equipamento: {
-                    include: {
-                        ambiente: {
-                            include: {
-                                cliente: true,
+            }),
+            prisma.pmocGerado.findMany({
+                take: 5,
+                orderBy: { dataGeracao: "desc" },
+                include: {
+                    equipamento: {
+                        include: {
+                            ambiente: {
+                                include: {
+                                    cliente: true,
+                                },
                             },
                         },
                     },
+                    responsavel: true,
                 },
-                responsavel: true,
-            },
-        }),
-    ]);
+            }),
+        ]);
 
     return (
         <AppShell>
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900">
+                    <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
                         Dashboard
                     </h1>
                     <p className="mt-2 text-sm text-slate-500">
@@ -75,13 +69,13 @@ export default async function DashboardPage() {
 
                 <Link
                     href="/nova-os"
-                    className="rounded-xl bg-blue-900 px-5 py-3 text-sm font-black text-white"
+                    className="w-full rounded-xl bg-blue-900 px-5 py-3 text-center text-sm font-black text-white sm:w-auto"
                 >
                     + Nova OS PMOC
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <Card title="Clientes" value={clientes} />
                 <Card title="Ambientes" value={ambientes} />
                 <Card title="Equipamentos" value={equipamentos} />
@@ -89,13 +83,13 @@ export default async function DashboardPage() {
                 <Card title="PMOCs no mês" value={pmocsMes} />
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_0.6fr]">
-                <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="mt-6 grid grid-cols-1 gap-6 xl:mt-8 xl:grid-cols-[1.4fr_0.6fr]">
+                <div className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
                     <h2 className="mb-5 text-lg font-black text-slate-900">
                         Últimos PMOCs gerados
                     </h2>
 
-                    <div className="overflow-x-auto">
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-left text-sm">
                             <thead>
                                 <tr className="border-b text-slate-500">
@@ -113,9 +107,7 @@ export default async function DashboardPage() {
                                         <td className="py-4 font-bold">
                                             {pmoc.dataGeracao.toLocaleDateString("pt-BR")}
                                         </td>
-                                        <td>
-                                            {pmoc.equipamento.ambiente.cliente.nome}
-                                        </td>
+                                        <td>{pmoc.equipamento.ambiente.cliente.nome}</td>
                                         <td className="font-bold text-blue-900">
                                             {pmoc.equipamento.tag}
                                         </td>
@@ -125,16 +117,41 @@ export default async function DashboardPage() {
                                 ))}
                             </tbody>
                         </table>
-
-                        {!ultimosPmocs.length && (
-                            <p className="py-8 text-center text-sm text-slate-500">
-                                Nenhum PMOC gerado ainda.
-                            </p>
-                        )}
                     </div>
+
+                    <div className="space-y-3 md:hidden">
+                        {ultimosPmocs.map((pmoc: UltimoPmoc) => (
+                            <div key={pmoc.id} className="rounded-2xl border p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="font-black text-slate-900">
+                                        {pmoc.equipamento.tag}
+                                    </p>
+                                    <span className="text-xs font-bold text-slate-500">
+                                        {pmoc.dataGeracao.toLocaleDateString("pt-BR")}
+                                    </span>
+                                </div>
+
+                                <p className="mt-2 text-sm text-slate-600">
+                                    {pmoc.equipamento.ambiente.cliente.nome}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    {pmoc.equipamento.nome}
+                                </p>
+                                <p className="mt-3 text-xs font-bold text-slate-400">
+                                    Responsável: {pmoc.responsavel.nome}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {!ultimosPmocs.length && (
+                        <p className="py-8 text-center text-sm text-slate-500">
+                            Nenhum PMOC gerado ainda.
+                        </p>
+                    )}
                 </div>
 
-                <div className="rounded-3xl bg-white p-6 shadow-sm">
+                <div className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
                     <h2 className="mb-5 text-lg font-black text-slate-900">
                         Ações rápidas
                     </h2>
@@ -164,9 +181,9 @@ export default async function DashboardPage() {
 
 function Card({ title, value }: { title: string; value: number }) {
     return (
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="rounded-3xl bg-white p-5 shadow-sm sm:p-6">
             <p className="text-sm font-bold text-slate-500">{title}</p>
-            <h2 className="mt-4 text-4xl font-black text-slate-900">
+            <h2 className="mt-3 text-3xl font-black text-slate-900 sm:mt-4 sm:text-4xl">
                 {value}
             </h2>
         </div>
