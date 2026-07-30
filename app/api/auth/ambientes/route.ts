@@ -61,21 +61,62 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const prisma = await getPrisma();
+    try {
+        const prisma = await getPrisma();
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
 
-    if (!id) {
+        if (!id) {
+            return NextResponse.json(
+                { error: "ID do ambiente não informado." },
+                { status: 400 }
+            );
+        }
+
+        const ambiente = await prisma.ambiente.findUnique({
+            where: { id },
+            include: {
+                _count: {
+                    select: {
+                        equipamentos: true,
+                    },
+                },
+            },
+        });
+
+        if (!ambiente) {
+            return NextResponse.json(
+                { error: "Ambiente não encontrado." },
+                { status: 404 }
+            );
+        }
+
+        if (ambiente._count.equipamentos > 0) {
+            return NextResponse.json(
+                {
+                    error:
+                        `Não é possível excluir este ambiente, pois existem ` +
+                        `${ambiente._count.equipamentos} equipamento(s) vinculado(s) a ele.`,
+                },
+                { status: 409 }
+            );
+        }
+
+        await prisma.ambiente.delete({
+            where: { id },
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: "Ambiente excluído com sucesso.",
+        });
+    } catch (error) {
+        console.error("Erro ao excluir ambiente:", error);
+
         return NextResponse.json(
-            { error: "ID não informado." },
-            { status: 400 }
+            { error: "Não foi possível excluir o ambiente." },
+            { status: 500 }
         );
     }
-
-    await prisma.ambiente.delete({
-        where: { id },
-    });
-
-    return NextResponse.json({ success: true });
 }

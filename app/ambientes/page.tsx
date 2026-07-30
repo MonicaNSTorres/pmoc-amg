@@ -96,21 +96,40 @@ export default function AmbientesPage() {
     }
 
     async function excluirAmbiente(id: string) {
-        const confirmar = confirm("Deseja realmente excluir este ambiente?");
+        const confirmar = confirm(
+            "Deseja realmente excluir este ambiente?"
+        );
+
         if (!confirmar) return;
 
-        const res = await fetch(`/api/auth/ambientes?id=${id}`, {
-            method: "DELETE",
-        });
+        try {
+            const res = await fetch(`/api/auth/ambientes?id=${id}`, {
+                method: "DELETE",
+            });
 
-        const data = await res.json();
+            const contentType = res.headers.get("content-type");
 
-        if (!res.ok) {
-            alert(data.error || "Erro ao excluir ambiente.");
-            return;
+            const data = contentType?.includes("application/json")
+                ? await res.json()
+                : null;
+
+            if (!res.ok) {
+                alert(
+                    data?.error ||
+                    "Não foi possível excluir o ambiente."
+                );
+                return;
+            }
+
+            alert("Ambiente excluído com sucesso.");
+            await carregarDados();
+        } catch (error) {
+            console.error("Erro ao excluir ambiente:", error);
+
+            alert(
+                "Ocorreu um erro ao excluir o ambiente. Tente novamente."
+            );
         }
-
-        await carregarDados();
     }
 
     useEffect(() => {
