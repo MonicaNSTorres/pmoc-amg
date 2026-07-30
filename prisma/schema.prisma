@@ -68,22 +68,23 @@ model Ambiente {
 }
 
 model Equipamento {
-  id             String   @id @default(cuid())
-  tag            String
-  nome           String
-  marca          String?
-  modelo         String?
-  capacidade     String?
-  localizacao    String?
-  ativo          Boolean  @default(true)
-  criadoEm       DateTime @default(now())
-  atualizadoEm   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  tag          String   @unique
+  nome         String
+  marca        String?
+  modelo       String?
+  numeroSerie  String?
+  capacidade   String?
+  localizacao  String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-  ambienteId     String
-  ambiente       Ambiente @relation(fields: [ambienteId], references: [id])
+  ambienteId String
+  ambiente   Ambiente @relation(fields: [ambienteId], references: [id])
 
-  planos         PlanoManutencao[]
-  pmocsGerados   PmocGerado[]
+  planos       PlanoManutencao[]
+  pmocsGerados PmocGerado[]
 }
 
 model ResponsavelTecnico {

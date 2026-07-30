@@ -316,7 +316,21 @@ export default function EquipamentosPage() {
                             </select>
 
                             <input className="rounded-xl border px-4 py-3 text-sm" placeholder="TAG" value={editTag} onChange={(e) => setEditTag(e.target.value)} />
-                            <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Nome" value={editNome} onChange={(e) => setEditNome(e.target.value)} />
+                            <select
+                                value={editNome}
+                                onChange={(e) => setEditNome(e.target.value)}
+                                className="rounded-xl border px-4 py-3 text-sm"
+                            >
+                                <option value="">Selecione o ambiente/local</option>
+
+                                {[...new Set(equipamentos.map((e) => e.nome))]
+                                    .sort((a, b) => a.localeCompare(b))
+                                    .map((nome) => (
+                                        <option key={nome} value={nome}>
+                                            {nome}
+                                        </option>
+                                    ))}
+                            </select>
                             <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Marca" value={editMarca} onChange={(e) => setEditMarca(e.target.value)} />
                             <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Modelo" value={editModelo} onChange={(e) => setEditModelo(e.target.value)} />
                             <input className="rounded-xl border px-4 py-3 text-sm" placeholder="Capacidade" value={editCapacidade} onChange={(e) => setEditCapacidade(e.target.value)} />
