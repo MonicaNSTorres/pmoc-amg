@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,6 +36,8 @@ export async function POST(req: Request) {
         },
     });
 
+    revalidatePath("/dashboard");
+
     return NextResponse.json(cliente);
 }
 
@@ -69,12 +72,20 @@ export async function DELETE(req: Request) {
     const id = searchParams.get("id");
 
     if (!id) {
-        return NextResponse.json({ error: "ID não informado." }, { status: 400 });
+        return NextResponse.json(
+            { error: "ID não informado." },
+            { status: 400 }
+        );
     }
 
     await prisma.cliente.delete({
         where: { id },
     });
 
-    return NextResponse.json({ success: true });
+    //atualiza indicadores do dashboard
+    revalidatePath("/dashboard");
+
+    return NextResponse.json({
+        success: true,
+    });
 }

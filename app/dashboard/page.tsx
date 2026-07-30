@@ -2,6 +2,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/layout/AppShell";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type UltimoPmoc = {
     id: string;
     dataGeracao: Date;
