@@ -16,6 +16,131 @@ type LinhaExcel = {
   NUMERO_SERIE: string;
 };
 
+type PeriodicidadePmoc = "MENSAL" | "BIMESTRAL" | "TRIMESTRAL";
+
+type ProgramacaoPmoc = {
+  periodicidade: PeriodicidadePmoc;
+  mesesExecucao: number[];
+};
+
+const TODOS_OS_MESES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+/**
+ * Programação baseada na aba "Plano" da planilha Planejamento 2026.
+ *
+ * As chaves são normalizadas sem acentos, em maiúsculas e sem espaços extras.
+ * Os aliases permitem relacionar os nomes usados na planilha dos equipamentos
+ * com os nomes apresentados na aba de planejamento.
+ */
+const programacaoPorUnidade: Record<string, ProgramacaoPmoc> = {
+  SEDE: {
+    periodicidade: "MENSAL",
+    mesesExecucao: TODOS_OS_MESES,
+  },
+  "CENTRO DE CONVIVENCIA": {
+    periodicidade: "MENSAL",
+    mesesExecucao: TODOS_OS_MESES,
+  },
+
+  SUL: {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+  "SUL AGENCIA": {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+  JAMBEIRO: {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+  "JAMBEIRO AGENCIA": {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+  PARAIBUNA: {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+  "PARAIBUNA AGENCIA": {
+    periodicidade: "BIMESTRAL",
+    mesesExecucao: [3, 5, 7, 9, 11],
+  },
+
+  "EUGENIO DE MELO": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  ORIENTE: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  "JARDIM ORIENTE": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  CACAPAVA: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  "CAMPOS DO JORDAO": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  CARAGUA: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  CARAGUATATUBA: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  CRUZEIRO: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [2, 5, 8, 11],
+  },
+  ILHABELA: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  "ILHA BELA": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+  JACAREI: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  SFX: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [2, 5, 8, 11],
+  },
+  "SAO FRANCISCO XAVIER": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [2, 5, 8, 11],
+  },
+  "SAO SEBASTIAO": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [4, 7, 10],
+  },
+  TAPIRAI: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  "TAPIRAI AGENCIA": {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  TAUBATE: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [3, 6, 9, 12],
+  },
+  UBATUBA: {
+    periodicidade: "TRIMESTRAL",
+    mesesExecucao: [1, 4, 7, 10],
+  },
+};
+
 const servicos = [
   "Verificar e corrigir o ajuste da moldura na estrutura",
   "Verificar obstrução/inclinação para drenagem do condensado na bandeja",
@@ -52,6 +177,9 @@ async function main() {
   let linhasIgnoradas = 0;
   let tagsDuplicadas = 0;
   let planosProcessados = 0;
+  let planosMensais = 0;
+  let planosBimestrais = 0;
+  let planosTrimestrais = 0;
 
   for (const [indice, linha] of linhas.entries()) {
     const numeroLinhaExcel = indice + 2;
@@ -183,22 +311,31 @@ async function main() {
         equipamentosCriados++;
       }
 
+      const programacao = obterProgramacaoPmoc(nomeUnidade, nomeAmbiente);
+
+      /*
+       * Mantemos o mesmo ID utilizado pelo seed anterior para atualizar o plano
+       * já existente, em vez de criar um segundo plano para o equipamento.
+       */
       const planoId = `plano-${slug(tag)}-mensal`;
+      const nomePlano = montarNomePlano(programacao.periodicidade);
 
       const plano = await prisma.planoManutencao.upsert({
         where: {
           id: planoId,
         },
         update: {
-          nome: "Plano PMOC Mensal",
-          periodicidade: "MENSAL",
+          nome: nomePlano,
+          periodicidade: programacao.periodicidade,
+          mesesExecucao: programacao.mesesExecucao,
           equipamentoId: equipamento.id,
           ativo: true,
         },
         create: {
           id: planoId,
-          nome: "Plano PMOC Mensal",
-          periodicidade: "MENSAL",
+          nome: nomePlano,
+          periodicidade: programacao.periodicidade,
+          mesesExecucao: programacao.mesesExecucao,
           equipamentoId: equipamento.id,
           ativo: true,
         },
@@ -217,12 +354,20 @@ async function main() {
       await prisma.itemManutencao.createMany({
         data: servicos.map((descricao, index) => ({
           descricao,
-          periodicidade: "MENSAL",
+          periodicidade: programacao.periodicidade,
           ordem: index + 1,
           ativo: true,
           planoId: plano.id,
         })),
       });
+
+      if (programacao.periodicidade === "MENSAL") {
+        planosMensais++;
+      } else if (programacao.periodicidade === "BIMESTRAL") {
+        planosBimestrais++;
+      } else {
+        planosTrimestrais++;
+      }
 
       planosProcessados++;
 
@@ -248,6 +393,9 @@ async function main() {
   console.log(`Equipamentos criados: ${equipamentosCriados}`);
   console.log(`Equipamentos atualizados: ${equipamentosAtualizados}`);
   console.log(`Planos processados: ${planosProcessados}`);
+  console.log(`Planos mensais: ${planosMensais}`);
+  console.log(`Planos bimestrais: ${planosBimestrais}`);
+  console.log(`Planos trimestrais: ${planosTrimestrais}`);
   console.log(`TAGs duplicadas ignoradas: ${tagsDuplicadas}`);
   console.log(`Outras linhas ignoradas: ${linhasIgnoradas}`);
   console.log("================================================");
@@ -437,6 +585,59 @@ function normalizarTexto(valor: unknown) {
 
 function somenteNumeros(valor: string) {
   return valor.replace(/\D/g, "");
+}
+
+function obterProgramacaoPmoc(
+  nomeUnidade: string,
+  nomeAmbiente: string,
+): ProgramacaoPmoc {
+  const unidade = normalizarChaveProgramacao(nomeUnidade);
+  const ambiente = normalizarChaveProgramacao(nomeAmbiente);
+
+  /*
+   * Primeiro tentamos a combinação mais específica. Isso atende nomes como
+   * "SUL AGÊNCIA", "JAMBEIRO AGÊNCIA" e "TAPIRAÍ AGÊNCIA".
+   */
+  const chavesPossiveis = [
+    `${unidade} AGENCIA`,
+    ambiente,
+    unidade,
+  ];
+
+  for (const chave of chavesPossiveis) {
+    const programacao = programacaoPorUnidade[chave];
+
+    if (programacao) {
+      return {
+        periodicidade: programacao.periodicidade,
+        mesesExecucao: [...programacao.mesesExecucao],
+      };
+    }
+  }
+
+  throw new Error(
+    `Programação PMOC não encontrada para a unidade "${nomeUnidade}" e ambiente "${nomeAmbiente}".`,
+  );
+}
+
+function normalizarChaveProgramacao(valor: string) {
+  return normalizarTexto(valor)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+}
+
+function montarNomePlano(periodicidade: PeriodicidadePmoc) {
+  const nomes: Record<PeriodicidadePmoc, string> = {
+    MENSAL: "Plano PMOC Mensal",
+    BIMESTRAL: "Plano PMOC Bimestral",
+    TRIMESTRAL: "Plano PMOC Trimestral",
+  };
+
+  return nomes[periodicidade];
 }
 
 function montarDescricaoAmbiente({

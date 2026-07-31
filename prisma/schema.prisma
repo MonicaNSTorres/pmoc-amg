@@ -14,6 +14,7 @@ enum PerfilUsuario {
 
 enum Periodicidade {
   MENSAL
+  BIMESTRAL
   TRIMESTRAL
   SEMESTRAL
   ANUAL
@@ -105,12 +106,17 @@ model PlanoManutencao {
   id             String        @id @default(cuid())
   nome           String
   periodicidade  Periodicidade
+
+  // Números dos meses em que o plano deve ser executado.
+  // Exemplo: [3, 6, 9, 12]
+  mesesExecucao  Int[]         @default([])
+
   ativo          Boolean       @default(true)
   criadoEm       DateTime      @default(now())
   atualizadoEm   DateTime      @updatedAt
 
   equipamentoId  String
-  equipamento    Equipamento @relation(fields: [equipamentoId], references: [id])
+  equipamento    Equipamento   @relation(fields: [equipamentoId], references: [id])
 
   itens          ItemManutencao[]
 }
